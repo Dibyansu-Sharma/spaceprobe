@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net"
 	"time"
 
@@ -11,9 +12,11 @@ import (
 	"gorm.io/gorm"
 
 	"spaceprobe-backend/models"
+	"spaceprobe-backend/ws"
 )
 
 var db *gorm.DB
+var websocketServer *ws.Server
 
 func initDB() {
 	dsn := "host=localhost user=postgres password=1234 dbname=postgres port=5432 sslmode=disable"
@@ -80,6 +83,34 @@ func handleConnection(conn net.Conn) {
 		fmt.Println("Stored sensor data:", data)
 
 		updateReliability(data)
+
+		var bestSensor models.SensorReliability
+		timeThreshold := time.Now().Add(-1 * time.Minute)
+
+		db.Where("updated_at > ?", timeThreshold).
+			Order("reliability DESC, count DESC, updated_at DESC").
+			First(&bestSensor)
+
+		var bestSensorData models.SensorData
+		if err := db.Where("sensor_id = ?", bestSensor.SensorID).Order("created_at DESC").First(&bestSensorData).Error; err != nil {
+			log.Println("Error fetching best sensor data:", err)
+			return
+		}
+
+		jsonData, _ := json.Marshal(map[string]interface{}{
+			"sensor_id":   bestSensorData.SensorID,
+			"temperature": bestSensorData.Temperature,
+			"humidity":    bestSensorData.Humidity,
+			"pressure":    bestSensorData.Pressure,
+			"visibility":  bestSensorData.Visibility,
+			"aqi":         bestSensorData.AQI,
+			"occupancy":   bestSensorData.Occupancy,
+			"created_at":  bestSensorData.CreatedAt,
+		})
+
+		websocketServer.BroadcastUpdate(bestSensorData.SensorID, jsonData)
+
+		log.Printf("Stored and broadcasted data for sensor: %s", bestSensorData.SensorID)
 	}
 }
 
@@ -103,6 +134,7 @@ func startTCPServer() {
 
 func main() {
 	initDB()
+	websocketServer = ws.StartServer()
 	go startTCPServer()
 	go generateMockData()
 

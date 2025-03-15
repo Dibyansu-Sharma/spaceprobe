@@ -133,3 +133,42 @@ I thought of below two approaches and went with the option 1.
    * Handling edge cases like sensor restarts
 
 First approach is cleaner and simpler to implement and understand
+
+# Log 2:34 AM 16.03.2025
+
+### WebSocket Integration  
+- Set up WebSocket server in Go.  
+- Push real-time sensor updates to connected clients.  
+
+### Option 1 - Go with net/http for web sockets - 
+    -  No External Dependencies PRO
+    -  No built-in JSON handling, ping/pong CON 
+
+### Option 2 - Go with Gorilla WebSocket- 
+    -  External Dependencies. COMPLEX CON
+    -  Supports message compression, ping/pong handling, subprotocols, and connection upgrades, 
+    -  Handles edge cases like abrupt connection closures and helps prevent memory leaks PRO 
+
+
+Gorilla WebSocket seems to be the better choice. Tutorial to implement - [Tutorial](https://dev.to/davidnadejdin/simple-server-on-gorilla-websocket-52h7)
+
+Components Till Now - 
+TCP Server (server.go)
+ - Continuously generates mock sensor data and sends it via TCP
+TCP Listener (main.go)
+- Receives TCP data, saves it to the database, and notifies WebSocket clients
+WebSocket Server (ws/ws.go)
+- Manages client connections and subscriptions
+- Sends real-time updates only to clients subscribed to specific sensors
+how clients tell your server which sensors they're interested in. Without this subscription mechanism:
+
+WebSocket server would need to send ALL sensor data to ALL connected clients
+Each dashboard would receive data for sensors it doesn't need to display
+
+WebSocket would send the latest data from a specific sensor when new data is received. However, if the current sensor's reliability is low due to high variance, React UI should be able to fetch the most reliable sensor data instead - `If the current sensor's reliability is low, the UI fetches the best available sensor from the database instead`
+
+ISSUE - 
+If a sensor had a high reliability score but stopped reporting new data, the UI would still display its last known data, which might be outdated
+
+FIX - 
+Modify the query to only consider recent sensor readings, for example, from the last 10 minutes
