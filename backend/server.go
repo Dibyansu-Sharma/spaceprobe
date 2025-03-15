@@ -19,15 +19,14 @@ func generateMockData() {
 
 	for {
 		mockData := models.SensorData{
-			SensorID:         fmt.Sprintf("sensor-%d", rand.Intn(100)),
-			Temperature:      15 + rand.Float64()*20,
-			Humidity:         rand.Float64() * 100,
-			Pressure:         950 + rand.Float64()*50,
-			Visibility:       rand.Float64() * 10,
-			AQI:              rand.Intn(500),
-			Occupancy:        rand.Intn(5000),
-			ReliabilityScore: rand.Float64(),
-			CreatedAt:        time.Now(),
+			SensorID:    fmt.Sprintf("sensor-%d", rand.Intn(3)),
+			Temperature: 15 + rand.Float64()*20,
+			Humidity:    rand.Float64() * 100,
+			Pressure:    950 + rand.Float64()*50,
+			Visibility:  rand.Float64() * 10,
+			AQI:         rand.Intn(500),
+			Occupancy:   rand.Intn(5000),
+			CreatedAt:   time.Now(),
 		}
 
 		jsonData, err := json.Marshal(mockData)

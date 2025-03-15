@@ -35,6 +35,7 @@ occupancy INTEGER
 reliability_score FLOAT DEFAULT 1.0  
 updated_at TIMESTAMP  
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  
+```
 
 ## Next Steps  
 
@@ -53,3 +54,82 @@ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
 ### Error Handling & Logging Enhancements  
 - Improve logging for failures in data parsing, DB operations, and WebSockets.  
+
+# Log 18:31 AM 15.03.2025  
+
+### Implement Reliability Score Calculation  
+- Define logic based on data variance and update frequency.  
+- Store and update reliability score dynamically.  
+
+### Efficient Variance Calculation for Sensor Readings
+
+I'm considering how to efficiently calculate variance for sensor readings. A high variance would indicate outliers, and the formula for variance is:
+
+```
+s^2 = (summation  ( xi - xbar ) ^ 2) / n - 1
+ xbar -> mean
+ xi -> element
+```
+
+However, implementing this calculation with the current schema design seems inefficient. Fetching all records for a given `sensor_id`, computing the variance, and updating each row would be costly performance.
+
+### Proposed Optimization  
+
+To optimize this, I plan to introduce a new table, `sensor_reliability`, which will store:  
+
+- `sensor_id` (Primary Key)  
+- `reliability_score`  
+- `variance`
+- `mean`
+
+This allows us to efficiently retrieve sensor reliability via direct queries or joins, instead of recalculating it repeatedly.
+
+### Efficient Variance Calculation  
+
+Now, the challenge is to maintain variance and mean efficiently. Instead of recalculating from all past readings every time, I need a way to update variance incrementally as new data arrives.
+
+The current query:  
+
+```sql
+SELECT temperature FROM sensor_readings WHERE sensor_id = sensor_id 
+```
+
+is inefficient because it fetches multiple rows to compute variance
+
+Upon researching, I found Welford's Algorithm, which is a one pass algorithm to calculate variance. This avoids iterating over all past data while still maintaining an accurate variance calculation.
+
+Article on Welford's Algorithm
+[welford method](https://jonisalonen.com/2013/deriving-welfords-method-for-computing-variance/)
+
+Reliability Calculation - 
+Formula - 
+```
+The expression `mean*frequency/variance` - ratio that combines three fundamental statistical measures:
+
+Keeping latest 10 records for calculation - 
+Mean - the average value of a dataset
+Frequency - how often sensor data is fetched
+Variance - how spread out the values are from the mean
+
+A higher value suggests more reliable data. The ratio increases with higher mean values and frequencies, but decreases with higher variance which can be interpreted as noise.
+```
+## Sensor Reliability Approaches
+
+I thought of below two approaches and went with the option 1.
+
+### Option 1: Start with Reliability = 0 and build up 
+
+* Starting with zero reliability and increasing based on mean and frequency is intuitive
+* Higher frequency = more data points = more confidence
+* Higher mean (assuming temperature is what you're measuring) could indicate more stable readings
+* Lower variance would naturally lead to higher reliability as readings are more consistent
+
+### Option 2: Start with Reliability = 1 and apply penalties
+
+* Starting with perfect reliability and applying penalties for variance changes
+* This would indeed introduce complexity around:
+   * Handling the first data point (no previous variance to compare)
+   * Defining an appropriate penalty function
+   * Handling edge cases like sensor restarts
+
+First approach is cleaner and simpler to implement and understand

@@ -22,9 +22,47 @@ func initDB() {
 	if err != nil {
 		panic("Failed to connect to database")
 	}
-	db.AutoMigrate(&models.SensorData{})
+
+	err = db.AutoMigrate(&models.SensorData{}, &models.SensorReliability{})
+	if err != nil {
+		panic("Failed to migrate database: " + err.Error())
+	}
+
+	fmt.Println("Database connected and migrated successfully")
 }
 
+func updateReliability(data models.SensorData) {
+	var reliability models.SensorReliability
+	result := db.Where("sensor_id = ?", data.SensorID).First(&reliability)
+	if result.Error != nil {
+		reliability = models.SensorReliability{
+			SensorID:    data.SensorID,
+			Count:       1,
+			Mean:        data.Temperature,
+			Variance:    0,
+			Reliability: 0,
+			UpdatedAt:   time.Now(),
+		}
+		db.Create(&reliability)
+	} else {
+		newCount := reliability.Count + 1
+		delta := data.Temperature - reliability.Mean
+		newMean := reliability.Mean + delta/float64(newCount)
+		newVariance := ((reliability.Variance * float64(reliability.Count)) + delta*(data.Temperature-newMean)) / float64(newCount)
+
+		newReliability := newMean / (newVariance + 0.01)
+
+		reliability.Count = newCount
+		reliability.Mean = newMean
+		reliability.Variance = newVariance
+		reliability.Reliability = newReliability
+		reliability.UpdatedAt = time.Now()
+
+		db.Save(&reliability)
+	}
+
+	fmt.Println("Updated reliability for sensor:", data.SensorID)
+}
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	scanner := bufio.NewScanner(conn)
@@ -40,6 +78,8 @@ func handleConnection(conn net.Conn) {
 		db.Create(&data)
 
 		fmt.Println("Stored sensor data:", data)
+
+		updateReliability(data)
 	}
 }
 
