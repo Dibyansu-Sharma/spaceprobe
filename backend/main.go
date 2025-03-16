@@ -98,14 +98,15 @@ func handleConnection(conn net.Conn) {
 		}
 
 		jsonData, _ := json.Marshal(map[string]interface{}{
-			"sensor_id":   bestSensorData.SensorID,
-			"temperature": bestSensorData.Temperature,
-			"humidity":    bestSensorData.Humidity,
-			"pressure":    bestSensorData.Pressure,
-			"visibility":  bestSensorData.Visibility,
-			"aqi":         bestSensorData.AQI,
-			"occupancy":   bestSensorData.Occupancy,
-			"created_at":  bestSensorData.CreatedAt,
+			"sensor_id":         bestSensorData.SensorID,
+			"temperature":       bestSensorData.Temperature,
+			"humidity":          bestSensorData.Humidity,
+			"pressure":          bestSensorData.Pressure,
+			"visibility":        bestSensorData.Visibility,
+			"aqi":               bestSensorData.AQI,
+			"occupancy":         bestSensorData.Occupancy,
+			"reliability_score": bestSensor.Reliability,
+			"created_at":        bestSensorData.CreatedAt,
 		})
 
 		websocketServer.BroadcastUpdate(bestSensorData.SensorID, jsonData)

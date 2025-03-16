@@ -172,3 +172,44 @@ If a sensor had a high reliability score but stopped reporting new data, the UI 
 
 FIX - 
 Modify the query to only consider recent sensor readings, for example, from the last 10 minutes
+
+
+# Log - 4:40 PM, 17.03.2025
+
+## Frontend Development
+
+### Features Implemented:
+- Fetched and displayed real-time data.
+- Used graphs and charts for visualization.
+- Showed reliability scores, sensor metrics, and live updates.
+
+### Tech Stack Decision:
+- **Vite + React**: Chosen over Create React App (CRA) due to its deprecation and better optionality.
+- **Tailwind CSS**: Continued usage for styling.
+- **ShadCN**: currently used for component management.
+
+### WebSocket Implementation:
+- **Issue:** Encountered WebSocket error `1001 (Going Away)`, caused by frequent connect-disconnect cycles from the UI.
+- **Fix:** 
+  - Added `connectWebSocket` and `selectedSensor` as dependencies in `useEffect`.
+  - Used `useCallback` to cache functions and prevent unnecessary re-renders.
+
+### Data Handling:
+- **Reliability Score:** Not initially sent by the server. Updated the backend to include it.
+- **Formatting:** Created utility functions to format the response data for consistency.
+- **Rendering:** 
+  - Developed simple **card components** to display formatted data.
+  - Used references to create **charts and graphs**.
+
+### Identified Gap:
+- **Subscription Limitation:** 
+  - Users can subscribe to a specific sensor.
+  - However, the server only sends the **most reliable** sensor data.
+  - If the selected sensor is **unreliable**, no data is received.
+  - **Next Step:** Modify the server to handle and send unreliable sensor data as well.
+
+---
+
+### Next Steps:
+- Fix server implementation to allow displaying chosen sensor data even if it's unreliable.
+- Clean and error handling, test for edge cases

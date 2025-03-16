@@ -19,6 +19,7 @@ const (
 type Client struct {
 	conn       *websocket.Conn
 	subscribed map[string]bool
+	allSensors bool
 }
 
 type Server struct {
@@ -50,7 +51,11 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 		log.Println("WebSocket upgrade failed:", err)
 		return
 	}
-	client := &Client{conn: conn, subscribed: make(map[string]bool)}
+	client := &Client{
+		conn:       conn,
+		subscribed: make(map[string]bool),
+		allSensors: false,
+	}
 
 	s.mu.Lock()
 	s.clients[client] = true
@@ -77,11 +82,22 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 
 		switch msg.Type {
 		case Subscribe:
-			client.subscribed[msg.SensorID] = true
-			log.Printf("Client subscribed to sensor: %s", msg.SensorID)
+			if msg.SensorID == "" {
+				client.allSensors = true
+				log.Printf("Client subscribed to all sensors")
+			} else {
+				client.subscribed[msg.SensorID] = true
+				log.Printf("Client subscribed to sensor: %s", msg.SensorID)
+			}
 		case Unsubscribe:
-			delete(client.subscribed, msg.SensorID)
-			log.Printf("Client unsubscribed from sensor: %s", msg.SensorID)
+			if msg.SensorID == "" {
+				client.allSensors = false
+				client.subscribed = make(map[string]bool)
+				log.Printf("Client unsubscribed from all sensors")
+			} else {
+				delete(client.subscribed, msg.SensorID)
+				log.Printf("Client unsubscribed from sensor: %s", msg.SensorID)
+			}
 		}
 	}
 }
@@ -91,7 +107,7 @@ func (s *Server) BroadcastUpdate(sensorID string, data []byte) {
 	defer s.mu.Unlock()
 
 	for client := range s.clients {
-		if client.subscribed[sensorID] {
+		if client.subscribed[sensorID] || client.allSensors {
 			err := client.conn.WriteMessage(websocket.TextMessage, data)
 			if err != nil {
 				log.Println("WebSocket write error:", err)
