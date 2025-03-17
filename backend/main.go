@@ -62,7 +62,7 @@ func updateReliability(data models.SensorData) {
 		newMean := reliability.Mean + delta/float64(newCount)
 		newVariance := ((reliability.Variance * float64(reliability.Count)) + delta*(data.Temperature-newMean)) / float64(newCount)
 
-		newReliability := newMean / (newVariance + 0.01)
+		newReliability := 1 - (newVariance / (newVariance + newMean + 0.01))
 
 		reliability.Count = newCount
 		reliability.Mean = newMean

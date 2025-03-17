@@ -340,7 +340,11 @@ To solve this -
 - Introduced a `sensor_reliability` table to store precomputed statistics like mean, variance, and reliability score. Also add this `sensor_reliability` table is one of key technical decision I made, which paid off really well.
 - Built a data pipeline that updates these statistics incrementally with each new reading, eliminating the need for full dataset scans.  
 - Optimized the process to consider only the last few minutes, ensuring the reliability score reflects recent sensor performance rather than outdated data.
+
+
 - Came up with a make-shift realibility scoring formula -  
+
+Initial Formula - 
 ```
 The expression `mean*frequency/variance` - ratio that combines three fundamental statistical measures:
 
@@ -350,9 +354,39 @@ Frequency - how often sensor data is fetched
 Variance - how spread out the values are from the mean
 
 A higher value suggests more reliable data. The ratio increases with higher mean values and frequencies, but decreases with higher variance which can be interpreted as noise.
-```
 
-This approach significantly improved performance, allowing the real-time dashboard to display reliability scores instantly without query delays.
+Issues:
+1. **Unbounded Values**  
+   - The formula could produce values greater than 100%, making the reliability score meaningless.  
+
+2. **Overweighting Mean and Frequency**  
+   - Sensors with high frequency but high variance could still show high reliability, even if unstable.  
+
+3. **Too Sensitive to Small Variance**  
+   - When variance is small, the ratio becomes very large, exaggerating reliability.  
+
+```
+### Updated Formula - 
+
+```
+Reliability = 1 - (newVariance / (newVariance + newMean + 0.01))
+
+### Explanation of the Formula
+The fraction  
+newVariance / (newVariance + newMean + 0.01)
+represents how much variance contributes relative to the overall data spread.
+
+```
+- Higher variance → Higher fraction → Lower reliability  
+- Lower variance → Lower fraction → Higher reliability  
+- Subtracting from 1 ensures the result is between 0 and 1 (0–100%).  
+
+### Result
+- If variance is very small, the fraction approaches 0, so reliability approaches 1 (100%).  
+- If variance is large, the fraction approaches 1, so reliability approaches 0 (0%).  
+- The `0.01` in the denominator prevents division errors when variance is near zero.
+
+This approach significantly improved reliability, but still there are improvements that can be made.
 
 ### What would I improve with more time?
 With additional time, I would focus on:
