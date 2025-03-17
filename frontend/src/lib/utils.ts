@@ -43,3 +43,31 @@ export function reliabilityIndicator(reliability: number) {
   if (reliability <= 100) return { status: 'Good',  color: '#22c55e', bgColor: '#dcfce7' };
   return { status: 'Cannot Be Determined', color: '#7e22ce', bgColor: '#fae8ff' };
 }
+export interface SensorData {
+  sensor_id: string;
+  temperature: number;
+  humidity: number;
+  pressure: number;
+  visibility: number;
+  aqi: number;
+  occupancy: number;
+  reliability_score: number;
+  created_at: string;
+  time?: string;
+  formattedTime?: string;
+}
+
+export function generateMockSensorData(): SensorData {
+  const sensor_id = Math.floor(Math.random() * 3) + 1;
+  return {
+    sensor_id: `sensor-${sensor_id}`,
+    temperature: parseFloat((Math.random() * 15 + 20).toFixed(2)),
+    humidity: Math.floor(Math.random() * 50) + 30,
+    pressure: Math.floor(Math.random() * 30) + 1000,
+    visibility: Math.floor(Math.random() * 10) + 1,
+    aqi: Math.floor(Math.random() * 150),
+    occupancy: Math.floor(Math.random() * 10),
+    reliability_score: parseFloat((Math.random() * 0.5 + 0.5).toFixed(2)),
+    created_at: new Date().toISOString()
+  };
+}

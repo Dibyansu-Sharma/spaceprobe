@@ -1,7 +1,7 @@
 # Log 02:09 AM 15.03.2025  
 
 ## Goal - Create a Weather Check Application 
-First and foremost keep a cool name - SpaceProbe 
+First and foremost keep a name - SpaceProbe 
 Create a simple application that:  
 - Generates mock sensor data (temperature, AQI, occupancy, etc.).  adding humidity, pressure, timestamp, visibility and  reliability_score
 - Collects this data through a TCP server.  
@@ -12,7 +12,7 @@ Create a simple application that:
 ## Starting with Backend  
 
 1. **Go was mandatory**, no second thoughts.  
-2. **PostgreSQL over MySQL** – PostgreSQL scales better for complex queries as data grows, plus a good time to learn it.  
+2. **PostgreSQL over MySQL** – PostgreSQL scales better for complex queries as data grows.
 3. **WebSockets** – For real-time updates.  
 4. **Error Handling & Logging** – For debugging and monitoring sensor reliability.  
 
@@ -55,7 +55,7 @@ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ### Error Handling & Logging Enhancements  
 - Improve logging for failures in data parsing, DB operations, and WebSockets.  
 
-# Log 18:31 AM 15.03.2025  
+# Log 18:31 15.03.2025  
 
 ### Implement Reliability Score Calculation  
 - Define logic based on data variance and update frequency.  
@@ -174,7 +174,7 @@ FIX -
 Modify the query to only consider recent sensor readings, for example, from the last 10 minutes
 
 
-# Log - 4:40 PM, 17.03.2025
+# Log - 16:40, 17.03.2025
 
 ## Frontend Development
 
@@ -213,3 +213,117 @@ Modify the query to only consider recent sensor readings, for example, from the 
 ### Next Steps:
 - Fix server implementation to allow displaying chosen sensor data even if it's unreliable.
 - Clean and error handling, test for edge cases
+
+# Log 16:56 17.03.2025
+---
+
+### **UI Refactor**  
+
+- Previously, the entire UI logic was contained in a single file (`App.tsx`). While functional, this setup would become a major technical debt as the application scales.  
+- The UI has been refactored to introduce a **Home page**, which provides navigation to:  
+  1. **Real-Time Dashboard** – Connects to the WebSocket to fetch live updates.  
+  2. **Mock Dashboard** – Displays sample data to allow UI testing even if the WebSocket is unavailable.  
+- A **Reconnect Button** has been added to the Real-Time Dashboard, allowing users to manually reconnect to the WebSocket without refreshing the page.  
+- Introduced a **Stat Card Component** under `/components`, which is reusable across both dashboards to maintain consistency and reduce redundancy.  
+
+---
+
+### **Hosting Strategy**  
+
+- To deploy the application at minimal cost, I explored multiple hosting strategies. While **PostgreSQL** offers a free tier, it has a limited memory allocation, which would fill up quickly since data is generated every 5 seconds. Additionally, WebSocket hosting incurs extra costs.  
+- An alternative approach I tested is using **Cloudflare Tunnel** to expose the backend running on my local machine. This allows the WebSocket to be accessible via a stable domain that the UI can connect to in production.  
+- The Cloudflare Tunnel setup works as expected, but it has a drawback—it requires the backend server to be continuously running on the local machine, effectively making it a self-hosted server.  
+
+---
+
+### Setup Instructions 
+
+### **Setup Instructions for SpaceProbe Backend**  
+
+Follow these steps to set up and run the **SpaceProbe Backend** on your local machine.  
+
+**Prerequisites:**
+
+- **Go**: Ensure you have Go version >=1.24.1 installed.
+- **PostgreSQL**: Ensure PostgreSQL >=17.4 is installed and running on `localhost`.
+- **Node.js and npm**: Ensure you have Node.js (version 18.3.1 or compatible) and npm installed.
+---
+
+### **1. Clone the Repository**  
+```sh
+git clone https://github.com/Dibyansu-Sharma/spaceprobe.git
+cd spaceprobe
+```
+
+---
+
+### **2. Create a `.env` File**  
+Copy the example environment file and modify it as needed:  
+```sh
+cp .env.example .env
+```
+Edit the `.env` file with your preferred configuration values.
+
+---
+
+### **3. Initialize Go Module (if not already done)**  
+```sh
+go mod init spaceprobe-backend
+```
+
+---
+
+### **4. Install Required Dependencies**  
+Run the following commands to install all necessary Go packages:  
+```sh
+# Load environment variables from a .env file
+go get github.com/joho/godotenv
+
+# WebSockets support
+go get github.com/gorilla/websocket
+
+# PostgreSQL driver for GORM
+go get gorm.io/driver/postgres
+go get gorm.io/gorm
+```
+
+After installing the dependencies, tidy up the module:
+```sh
+go mod tidy
+```
+
+---
+
+### **5. Run the Application**  
+Once everything is set up, start the backend server:  
+```sh
+go run .
+```
+
+Backend should now be up and running
+
+
+### **Setup Instructions for SpaceProbe Frontend**
+---
+### **1. Frontend Setup**
+```sh
+cd ../frontend
+```
+### **2. Create a `.env` File**  
+Copy the example environment file and modify it as needed:  
+```sh
+cp .env.local.example .env.local
+```
+Edit the `.env` file with your preferred configuration values.
+
+### **3. Install Dependencies**
+```sh
+  npm install
+```
+### **4. Start the Frontend Server**
+```sh
+  npm run dev
+```
+---
+The UI runs on **port 5173** (by default).
+
