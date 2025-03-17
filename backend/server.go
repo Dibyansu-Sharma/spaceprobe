@@ -3,14 +3,29 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/rand"
 	"net"
+	"os"
 	"spaceprobe-backend/models"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 func generateMockData() {
-	conn, err := net.Dial("tcp", "localhost:9000")
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Warning: Could not load .env file")
+	}
+	tcpPort := os.Getenv("TCP_PORT")
+	if tcpPort == "" {
+		tcpPort = "9000"
+	}
+
+	tcpAddress := "localhost:" + tcpPort
+
+	conn, err := net.Dial("tcp", tcpAddress)
 	if err != nil {
 		fmt.Println("Failed to connect:", err)
 		return

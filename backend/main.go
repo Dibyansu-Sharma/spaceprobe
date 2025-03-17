@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"time"
 
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
@@ -19,11 +21,18 @@ var db *gorm.DB
 var websocketServer *ws.Server
 
 func initDB() {
-	dsn := "host=localhost user=postgres password=1234 dbname=postgres port=5432 sslmode=disable"
+
+	dsn := "host=" + os.Getenv("DB_HOST") +
+		" user=" + os.Getenv("DB_USER") +
+		" password=" + os.Getenv("DB_PASSWORD") +
+		" dbname=" + os.Getenv("DB_NAME") +
+		" port=" + os.Getenv("DB_PORT") +
+		" sslmode=" + os.Getenv("DB_SSLMODE")
+
 	var err error
 	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		panic("Failed to connect to database")
+		panic("Failed to connect to database: " + err.Error())
 	}
 
 	err = db.AutoMigrate(&models.SensorData{}, &models.SensorReliability{})
@@ -66,6 +75,7 @@ func updateReliability(data models.SensorData) {
 
 	fmt.Println("Updated reliability for sensor:", data.SensorID)
 }
+
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	scanner := bufio.NewScanner(conn)
@@ -116,12 +126,17 @@ func handleConnection(conn net.Conn) {
 }
 
 func startTCPServer() {
-	listener, err := net.Listen("tcp", ":9000")
+	tcpPort := os.Getenv("TCP_PORT")
+	if tcpPort == "" {
+		tcpPort = "9000"
+	}
+
+	listener, err := net.Listen("tcp", ":"+tcpPort)
 	if err != nil {
 		panic("Failed to start TCP server")
 	}
 	defer listener.Close()
-	fmt.Println("TCP Server started on port 9000")
+	fmt.Printf("TCP Server started on port %s\n", tcpPort)
 
 	for {
 		conn, err := listener.Accept()
@@ -134,6 +149,10 @@ func startTCPServer() {
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Warning: Could not load .env file")
+	}
 	initDB()
 	websocketServer = ws.StartServer()
 	go startTCPServer()

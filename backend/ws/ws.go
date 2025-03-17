@@ -3,9 +3,11 @@ package ws
 import (
 	"log"
 	"net/http"
+	"os"
 	"sync"
 
 	"github.com/gorilla/websocket"
+	"github.com/joho/godotenv"
 )
 
 type MessageType string
@@ -29,6 +31,16 @@ type Server struct {
 }
 
 func StartServer() *Server {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Warning: Could not load .env file")
+	}
+
+	wsPort := os.Getenv("WS_PORT")
+	if wsPort == "" {
+		wsPort = "8081"
+	}
+
 	server := &Server{
 		clients: make(map[*Client]bool),
 		upgrader: websocket.Upgrader{
@@ -38,8 +50,8 @@ func StartServer() *Server {
 
 	http.HandleFunc("/ws", server.handleConnections)
 	go func() {
-		log.Println("WebSocket server running at ws://localhost:8081/ws")
-		log.Fatal(http.ListenAndServe(":8081", nil))
+		log.Printf("WebSocket server running at ws://localhost:%s/ws", wsPort)
+		log.Fatal(http.ListenAndServe(":"+wsPort, nil))
 	}()
 
 	return server
