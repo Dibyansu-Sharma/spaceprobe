@@ -34,6 +34,7 @@ import {
 } from "./lib/utils";
 import { StatCard } from "./components/stat-card";
 import { Link } from "react-router-dom";
+import { getReliabilityMessage } from "./components/reliability-message";
 
 const Dashboard = () => {
   const [connected, setConnected] = useState(false);
@@ -48,7 +49,7 @@ const Dashboard = () => {
       console.log("WebSocket already connected");
       return;
     }
-    
+
     setConnecting(true);
     const wsUrl = import.meta.env.VITE_WEBSOCKET_URL;
     console.log("wsUrl", wsUrl);
@@ -161,7 +162,6 @@ const Dashboard = () => {
     };
   }, [connectWebSocket, disconnectWebSocket]);
 
-
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200">
@@ -183,8 +183,8 @@ const Dashboard = () => {
               </div>
               <Link to="/">
                 <button className="flex items-center gap-2 border px-3 py-1 rounded text-sm">
-                    <Home className="w-4 h-4" />
-                    <span>Home</span>
+                  <Home className="w-4 h-4" />
+                  <span>Home</span>
                 </button>
               </Link>
               <div className="flex items-center space-x-2">
@@ -208,7 +208,9 @@ const Dashboard = () => {
                     : "bg-blue-50 text-blue-600 hover:bg-blue-100"
                 )}
               >
-                <RefreshCw className={cn("w-4 h-4", connecting && "animate-spin")} />
+                <RefreshCw
+                  className={cn("w-4 h-4", connecting && "animate-spin")}
+                />
                 <span>{connecting ? "Connecting..." : "Reconnect"}</span>
               </button>
             </div>
@@ -264,15 +266,23 @@ const Dashboard = () => {
                 color="pink"
               />
               <StatCard
-                title="Reliability Score"
-                value={formatValue(
-                  currentData.reliability_score,
-                  "reliability_score"
-                )}
+                title={`Reliability Score: ${currentData.sensor_id}`}
+                value={
+                  currentData.reliability_score > 1 ||
+                  currentData.reliability_score < 0
+                    ? getReliabilityMessage(currentData)
+                    : formatValue(
+                        currentData.reliability_score,
+                        "reliability_score"
+                      )
+                }
                 icon={Goal}
                 color={
-                  reliabilityIndicator(currentData.reliability_score).status ===
-                  "Good"
+                  currentData.reliability_score > 1 ||
+                  currentData.reliability_score < 0
+                    ? "purple"
+                    : reliabilityIndicator(currentData.reliability_score)
+                        .status === "Good"
                     ? "green"
                     : "yellow"
                 }
@@ -516,7 +526,9 @@ const Dashboard = () => {
                     : "bg-blue-50 text-blue-600 hover:bg-blue-100"
                 )}
               >
-                <RefreshCw className={cn("w-4 h-4", connecting && "animate-spin")} />
+                <RefreshCw
+                  className={cn("w-4 h-4", connecting && "animate-spin")}
+                />
                 <span>{connecting ? "Connecting..." : "Reconnect"}</span>
               </button>
             </div>

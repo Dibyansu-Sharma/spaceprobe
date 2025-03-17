@@ -327,3 +327,49 @@ Edit the `.env` file with your preferred configuration values.
 ---
 The UI runs on **port 5173** (by default).
 
+
+## Code Challenge Feedback
+
+It was a great learning experience. While I'm used to MongoDB and Redis, this was my first time working with PostgreSQL, and I really enjoyed it. I’ve previously implemented socket communication in Go for blockchain transaction broadcasting, but when working in a team, you don’t always get to handle everything. This time, I got to be involved in every aspect from design decisions to end-to-end implementation which was rewarding. I've been working extensively with Next.js, Tailwind, and ShadCN, so revisiting React with Vite was a refreshing change.
+
+### **1. What was my biggest challenge and how did I solve it?***
+
+The reliability score calculation was a key challenge. Initially, I computed variance by fetching all historical records for each sensor, but as the dataset grew, this approach became a performance bottleneck.  
+To solve this -  
+- I Researched efficient variance calculation methods and found Welford’s Algorithm, which allows incremental updates without storing all past readings.  
+- Introduced a `sensor_reliability` table to store precomputed statistics like mean, variance, and reliability score. Also add this `sensor_reliability` table is one of key technical decision I made, which paid off really well.
+- Built a data pipeline that updates these statistics incrementally with each new reading, eliminating the need for full dataset scans.  
+- Optimized the process to consider only the last few minutes, ensuring the reliability score reflects recent sensor performance rather than outdated data.
+- Came up with a make-shift realibility scoring formula -  
+```
+The expression `mean*frequency/variance` - ratio that combines three fundamental statistical measures:
+
+Keeping latest for calculation - 
+Mean - the average value of a dataset
+Frequency - how often sensor data is fetched
+Variance - how spread out the values are from the mean
+
+A higher value suggests more reliable data. The ratio increases with higher mean values and frequencies, but decreases with higher variance which can be interpreted as noise.
+```
+
+This approach significantly improved performance, allowing the real-time dashboard to display reliability scores instantly without query delays.
+
+### What would I improve with more time?
+With additional time, I would focus on:
+
+- WebSocket subscription - Currently, users can only subscribe to specific sensors, but the system sends only the most reliable sensor data. I'd modify the server to allow users to view data from any sensor regardless of reliability, with clear visual indicators of data quality.
+- Adaptive reliability calculation - I'd implement a more sophisticated algorithm that considers environmental factors and sensor types when calculating reliability scores, rather than using a single formula for all sensors. Also the current formula is heavily dominant towards variance, so a better way would be to go with normalization or add count weight or going with a penalty reward system to dampen the variance dominance.
+- Caching layer - Implementing Redis to cache frequently accessed sensor data would further improve performance and reduce database load.
+- UI improvements - Creating a more intuitive sensor selection interface and adding data visualization options to better represent sensor relationships and trends over time.
+
+### Explain one key technical decision you made
+
+I chose PostgreSQL over MySQL to ensure the project could scale effectively. PostgreSQL handles complex queries better as data volume grows, which was important for our sensor data analytics.  
+
+This would allow to scale up and also give more optionalities in following areas -   
+- **Advanced indexing** for faster time-series data retrieval.  
+- **Better JSON support**, making it easier to adapt as sensor data changes.  
+- **Strong transaction management**, ensuring data integrity with frequent sensor updates.  
+- **Built-in statistical functions**, which would help with reliability score calculations.  
+
+This decision made our database to handle future sensor deployments smoothly.
