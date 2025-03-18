@@ -1,3 +1,5 @@
+**Next:** [Navigate to README](./README.md)
+
 # Log 02:09 AM 15.03.2025  
 
 ## Goal - Create a Weather Check Application 
@@ -407,3 +409,6 @@ This would allow to scale up and also give more optionalities in following areas
 - **Built-in statistical functions**, which would help with reliability score calculations.  
 
 This decision made our database to handle future sensor deployments smoothly.
+
+
+**Next:** [Navigate to README](./README.md)

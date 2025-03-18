@@ -1,6 +1,5 @@
 
 ---
-
 # **Setup Instructions for SpaceProbe**  
 
 This guide explains how to set up and run the **SpaceProbe** application, a weather monitoring system that:  
@@ -8,6 +7,25 @@ This guide explains how to set up and run the **SpaceProbe** application, a weat
 - **Collects data through a TCP server** and stores it in **PostgreSQL**  
 - **Pushes real-time updates via WebSockets**  
 - **Displays data on a React dashboard** with visualizations  
+
+---
+
+## **Table of Contents**
+- [Backend Setup (Go + PostgreSQL)](#backend-setup-go--postgresql)
+  - [1. Prerequisites](#1-prerequisites)
+  - [2. Clone the Repository](#2-clone-the-repository)
+  - [3. Configure Environment Variables](#3-configure-environment-variables)
+  - [4. Initialize and Install Dependencies](#4-initialize-and-install-dependencies)
+  - [5. Start the Backend Server](#5-start-the-backend-server)
+- [Frontend Setup (React + WebSockets)](#frontend-setup-react--websockets)
+  - [1. Navigate to the Frontend Directory](#1-navigate-to-the-frontend-directory)
+  - [2. Configure Environment Variables](#2-configure-environment-variables)
+  - [3. Install Dependencies](#3-install-dependencies)
+  - [4. Start the Frontend Server](#4-start-the-frontend-server)
+- [Technical Overview](#technical-overview)
+  - [Backend (Go)](#backend-go)
+  - [Frontend (React)](#frontend-react)
+- [Documentation Index](#documentation-index)
 
 ---
 
@@ -113,3 +131,18 @@ The UI should now be running on **http://localhost:5173** by default.
 - **Handles errors & disconnected states**  
 
 ---
+
+## **Documentation Index**
+
+- [Process Overview](process.md)
+- **Backend Docs**
+  - [Backend Overview](backend/backend.md)
+  - [Mock Data Generator](backend/mock-data-generator.md)
+  - [Sensor Data Model](backend/sensor-data-model.md)
+  - [Test Guide](backend/test.md)
+  - [WebSocket Guide](backend/websocket.md)
+- **Frontend Docs**
+  - [Application Router](frontend/application-router.md)
+  - [Dashboard](frontend/dashboard.md)
+  - [Homepage](frontend/homepage.md)
+  - [Mock Dashboard](frontend/mock-dashboard.md)
