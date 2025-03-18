@@ -134,15 +134,15 @@ The UI should now be running on **http://localhost:5173** by default.
 
 ## **Documentation Index**
 
-- [Process Overview](process.md)
+- [Process Overview](./PROCESS.md)
 - **Backend Docs**
-  - [Backend Overview](backend/backend.md)
-  - [Mock Data Generator](backend/mock-data-generator.md)
-  - [Sensor Data Model](backend/sensor-data-model.md)
-  - [Test Guide](backend/test.md)
-  - [WebSocket Guide](backend/websocket.md)
+  - [Backend Overview](documentation/backend/backend.md)
+  - [Mock Data Generator](documentation/backend/mock-data-generator.md)
+  - [Sensor Data Model](documentation/backend/sensor-data-model.md)
+  - [Test Guide](documentation/backend/test.md)
+  - [WebSocket Guide](documentation/backend/websocket.md)
 - **Frontend Docs**
-  - [Application Router](frontend/application-router.md)
-  - [Dashboard](frontend/dashboard.md)
-  - [Homepage](frontend/homepage.md)
-  - [Mock Dashboard](frontend/mock-dashboard.md)
+  - [Application Router](documentation/frontend/application-router.md)
+  - [Dashboard](documentation/frontend/dashboard.md)
+  - [Homepage](documentation/frontend/homepage.md)
+  - [Mock Dashboard](documentation/frontend/mock-dasboard-serverless.md)
